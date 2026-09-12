@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Terrain OC">
+<meta name="theme-color" content="#0D0D0D">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/oc-inter/observations-terrain/main/icon-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="https://raw.githubusercontent.com/oc-inter/observations-terrain/main/icon-512.png">
+<title>Observations Terrain</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--red:#CC1719;--rd:#A01215;--w:#FFF;--ow:#F0EDE6;--mu:#888884;--b1:rgba(255,255,255,0.08);--b2:rgba(255,255,255,0.18);--s1:rgba(255,255,255,0.04);--s2:rgba(255,255,255,0.08);--gr:#4CAF7D;}
+body{min-height:100vh;font-family:'Barlow',sans-serif;color:var(--w);background:#0D0D0D;padding:20px 14px 60px;}
+h1{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;text-align:center;margin-bottom:4px;}
+h1 span{color:var(--red);}
+.sub{font-size:12px;color:var(--mu);text-align:center;margin-bottom:18px;}
+.card{background:var(--s1);border:1px solid var(--b2);border-radius:16px;padding:18px 16px;max-width:480px;margin:0 auto;}
+.tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:18px;}
+.tab{padding:10px 2px;text-align:center;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-radius:9px;border:1px solid var(--b2);color:var(--mu);cursor:pointer;background:none;-webkit-tap-highlight-color:transparent;transition:all .15s;}
+.tab.on{background:rgba(204,23,25,0.2);color:var(--w);border-color:var(--red);}
+.pnl{display:none;}
+.pnl.on{display:block;}
+.lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:var(--red);margin-bottom:8px;margin-top:2px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+select,textarea,input[type=text]{width:100%;font-family:'Barlow',sans-serif;font-size:15px;background:var(--s2);border:1px solid var(--b2);border-radius:9px;color:var(--w);padding:11px 12px;outline:none;-webkit-appearance:none;appearance:none;}
+select option{background:#1a1210;color:#fff;}
+textarea{height:75px;resize:none;margin-bottom:12px;}
+input[type=text]::placeholder,textarea::placeholder{color:var(--mu);}
+.togs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.tog{padding:11px;text-align:center;font-size:13px;font-weight:600;border-radius:9px;border:1px solid var(--b2);color:var(--mu);cursor:pointer;background:none;text-transform:uppercase;letter-spacing:.03em;-webkit-tap-highlight-color:transparent;transition:all .15s;}
+.tog.gon{background:rgba(76,175,125,0.15);color:var(--gr);border-color:var(--gr);}
+.tog.ron{background:rgba(204,23,25,0.15);color:var(--red);border-color:var(--red);}
+.btn{width:100%;padding:13px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-radius:9px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;display:block;text-align:center;}
+.btn-r{background:var(--red);color:#fff;border:none;margin-bottom:14px;}
+.btn-r:active{background:var(--rd);}
+.btn-g{background:rgba(76,175,125,0.15);color:var(--gr);border:1px solid var(--gr);margin-top:12px;margin-bottom:0;}
+.btn-o{background:none;color:var(--red);border:1px solid var(--red);margin-bottom:8px;}
+.btn-mu{background:none;color:var(--mu);border:1px solid var(--b2);}
+.sep{border:none;border-top:1px solid var(--b1);margin:14px 0;}
+.oc{background:var(--s2);border:1px solid var(--b1);border-radius:10px;padding:10px 13px;margin-bottom:7px;position:relative;}
+.oc.pos{border-left:3px solid var(--gr);}
+.oc.neg{border-left:3px solid var(--red);}
+.om{font-size:11px;color:var(--mu);margin-bottom:3px;}
+.ot{font-size:13px;color:var(--ow);line-height:1.4;padding-right:22px;}
+.ot.lk{padding-right:0;}
+.xb{position:absolute;top:9px;right:10px;font-size:18px;color:var(--mu);background:none;border:none;cursor:pointer;line-height:1;padding:4px;-webkit-tap-highlight-color:transparent;}
+.empty{text-align:center;font-size:13px;color:var(--mu);padding:20px 0;}
+.badge{display:inline-block;background:rgba(204,23,25,0.15);border:1px solid var(--red);border-radius:7px;padding:5px 12px;font-size:12px;color:var(--red);font-weight:600;margin-bottom:12px;}
+.dh{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.dt{font-size:12px;font-weight:600;color:var(--ow);text-transform:uppercase;letter-spacing:.05em;}
+.dm{display:flex;gap:7px;align-items:center;}
+.dc{font-size:11px;color:var(--mu);}
+.dv{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:2px 7px;border-radius:5px;}
+.dv.ok{color:var(--gr);background:rgba(76,175,125,0.1);border:1px solid rgba(76,175,125,0.3);}
+.dv.ko{color:var(--mu);background:var(--s2);border:1px solid var(--b2);}
+.lkmsg{font-size:12px;color:var(--gr);text-align:center;padding:9px;background:rgba(76,175,125,0.08);border:1px solid rgba(76,175,125,0.2);border-radius:9px;margin-bottom:12px;}
+.pi{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:9px;margin-bottom:6px;font-size:14px;color:var(--ow);}
+.ar{display:flex;gap:7px;margin-bottom:10px;}
+.ar input{flex:1;}
+.ar button{padding:0 14px;font-size:13px;font-weight:600;background:var(--s2);border:1px solid var(--b2);border-radius:9px;cursor:pointer;color:var(--w);height:44px;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
+.psec{margin-bottom:18px;}
+.note{font-size:11px;color:var(--mu);text-align:center;margin-top:10px;}
+.ginfo{font-size:11px;color:var(--mu);text-align:center;margin-bottom:10px;line-height:1.5;}
+.saved-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gr);margin-left:6px;vertical-align:middle;}
+.mic-btn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;border:none;background:rgba(204,23,25,0.1);color:#CC1719;font-size:14px;cursor:pointer;flex-shrink:0}
+.mic-btn.listening{background:#CC1719;color:#fff;animation:mic-pulse 0.8s ease-in-out infinite}
+@keyframes mic-pulse{0%,100%{box-shadow:0 0 0 0 rgba(204,23,25,0.4)}50%{box-shadow:0 0 0 7px rgba(204,23,25,0)}}
+.mic-row{display:flex;align-items:center;gap:8px}
+</style>
+</head>
+<body>
+<div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#0D0D0D;border-bottom:2px solid var(--red);padding:10px 16px;align-items:center;gap:10px;font-family:'Barlow',sans-serif">
+  <span style="flex:1;color:#F0EDE6;font-size:13px">🔄 Nouvelle version de l'application disponible</span>
+  <button onclick="applyUpdate()" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;font-family:'Barlow',sans-serif;cursor:pointer;white-space:nowrap">Mettre à jour</button>
+</div>
+<div id="login-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;max-width:340px;margin:0 auto">
+  <h1 style="margin-bottom:18px">Observations <span>Terrain</span></h1>
+  <select id="login-ar-select" style="width:100%;margin-bottom:10px" onchange="onLoginArChange(this.value)"><option value="">Chargement des animateurs…</option></select>
+  <input id="login-user" type="text" placeholder="prenom.nom@optical-center.com" style="width:100%;margin-bottom:10px;display:none" >
+  <input id="login-pass" type="password" placeholder="Mot de passe Zimbra" style="width:100%;margin-bottom:10px">
+  <div id="login-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:10px"></div>
+  <button class="btn btn-r" id="login-btn" onclick="doLogin()">Se connecter</button>
+</div>
+
+<div id="app-wrap" style="display:none">
+<h1>Observations <span>Terrain</span></h1>
+<p class="sub">Saisie des visites magasins</p>
+<p class="sub" style="margin-top:-14px">Connecté : <span id="session-label">—</span> · <a href="#" onclick="logout();return false" style="color:var(--mu)">déconnexion</a></p>
+<div class="card">
+  <div class="tabs">
+    <div class="tab on" id="t0" onclick="go(0)">Saisie</div>
+    <div class="tab" id="t1" onclick="go(1)">Info generale</div>
+    <div class="tab" id="t2" onclick="go(2)">Semaine</div>
+    <div class="tab" id="t3" onclick="go(3)">Reglages</div>
+  </div>
+
+  <div class="pnl on" id="p0">
+    <div id="lkmsg" class="lkmsg" style="display:none">Journee validee — observations figees</div>
+    <div id="fz">
+      <div class="lbl">Nouvelle observation</div>
+      <div class="g2">
+        <select id="sel-mag"><option value="">Magasin...</option></select>
+        <select id="sel-th"><option value="">Theme...</option></select>
+
+      </div>
+      <div class="mic-row">
+        <label style="font-size:12px;color:var(--mu);flex:1">Observation</label>
+        <button type="button" class="mic-btn" onclick="startMicFor('txt')" title="Dicter">🎤</button>
+      </div>
+      <textarea id="txt" placeholder="Ce que tu as vu, entendu, constate..."></textarea>
+      <div class="togs">
+        <div class="tog" id="tp" onclick="setT('p')">+ Positif</div>
+        <div class="tog" id="tn" onclick="setT('n')">- A ameliorer</div>
+      </div>
+      <button class="btn btn-r" onclick="add()">Ajouter</button>
+    </div>
+    <div class="lbl">Aujourd'hui</div>
+    <div id="tlist"><div class="empty">Aucune observation aujourd'hui</div></div>
+    <div id="vz" style="display:none">
+      <div class="sep"></div>
+      <button class="btn btn-g" onclick="valDay()">Terminer la journee ✓</button>
+    </div>
+  </div>
+
+  <div class="pnl" id="p1">
+    <div class="lbl">Info generale</div>
+    <div class="ginfo">Pour des infos plus larges que ce que tu vois en magasin (contexte reseau, remontees terrain generales, tendances...)</div>
+    <div class="mic-row">
+      <label style="font-size:12px;color:var(--mu);flex:1">Info generale</label>
+      <button type="button" class="mic-btn" onclick="startMicFor('gtxt')" title="Dicter">🎤</button>
+    </div>
+    <textarea id="gtxt" placeholder="Info generale de la semaine, hors observations magasin par magasin..."></textarea>
+    <button class="btn btn-r" onclick="addGeneral()">Ajouter</button>
+    <div class="lbl" style="margin-top:14px">Cette semaine</div>
+    <div id="glist"><div class="empty">Aucune info generale cette semaine</div></div>
+  </div>
+
+  <div class="pnl" id="p2">
+    <div class="lbl">Recap semaine</div>
+    <div id="wsum"><div class="empty">Aucune observation cette semaine</div></div>
+    <div class="sep"></div>
+    <div class="ginfo">La communication hebdo (Slack + mail) part automatiquement chaque dimanche a partir de ces observations, avec le reste du reseau (bilans de passage, PEDLV, Kaizen).</div>
+    <div class="sep"></div>
+    <button class="btn btn-mu" onclick="reset()">Nouvelle semaine — effacer tout</button>
+  </div>
+
+  <div class="pnl" id="p3">
+    <div class="psec">
+      <div class="lbl">Magasins</div>
+      <div class="ginfo">La liste des magasins vient du referentiel reseau (magasins.csv), filtree par l'animateur choisi dans l'onglet Saisie.</div>
+      <button class="btn btn-o" onclick="reloadMagasins()">🔄 Recharger le referentiel magasins</button>
+    </div>
+    <div class="sep"></div>
+    <div class="psec">
+      <div class="lbl">Themes</div>
+      <div class="ar">
+        <input type="text" id="nt" placeholder="Nouveau theme...">
+        <button onclick="addTh()">Ajouter</button>
+      </div>
+      <div id="thl"></div>
+    </div>
+    <p class="note">Donnees sauvegardees automatiquement <span class="saved-dot"></span></p>
+  </div>
+</div>
+</div>
+
+<script>
+var JOURS=['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+var KEY='oc_terrain_v1';
+var RELAY='https://oc-inter-relay.cecilia-lecomte.workers.dev';
+var MAGASINS_CSV_URL='https://raw.githubusercontent.com/oc-inter/bilan-passage/main/magasins_inter.csv';
+var arSession=null;
+var MAGASINS_CACHE_KEY='obs_magasins_cache';
+var AR_FILTER_KEY='obs_current_ar';
+var APP_VERSION='2026.09.12-1';
+
+function checkForUpdate(){
+  var updatePending=localStorage.getItem('obs_update_pending');
+  if(updatePending){
+    localStorage.removeItem('obs_update_pending');
+    localStorage.setItem('obs_app_version',APP_VERSION);
+    return;
+  }
+  var storedVersion=localStorage.getItem('obs_app_version');
+  if(storedVersion&&storedVersion!==APP_VERSION){
+    document.getElementById('update-banner').style.display='flex';
+  }else{
+    localStorage.setItem('obs_app_version',APP_VERSION);
+  }
+}
+
+function applyUpdate(){
+  var btn=document.querySelector('#update-banner button');
+  if(btn){btn.textContent='Mise a jour...';btn.disabled=true;}
+  localStorage.setItem('obs_update_pending','1');
+
+  var cleanup=Promise.resolve();
+  if('serviceWorker' in navigator){
+    cleanup=navigator.serviceWorker.getRegistrations().then(function(regs){
+      return Promise.all(regs.map(function(reg){return reg.unregister();}));
+    }).catch(function(){});
+  }
+  cleanup.then(function(){
+    if('caches' in window){
+      return caches.keys().then(function(keys){
+        return Promise.all(keys.map(function(key){return caches.delete(key);}));
+      }).catch(function(){});
+    }
+  }).then(function(){
+    // Rechargement "dur" : URL avec parametre anti-cache pour forcer une vraie
+    // requete reseau (un simple reload() peut resservir une version en cache
+    // systeme sur une PWA installee sur l'ecran d'accueil iOS)
+    var base=window.location.href.split('?')[0].split('#')[0];
+    window.location.href=base+'?_u='+Date.now();
+  });
+}
+
+function registerServiceWorker(){
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      reg.addEventListener('updatefound',function(){
+        var newWorker=reg.installing;
+        if(newWorker){
+          newWorker.addEventListener('statechange',function(){
+            if(newWorker.state==='activated'){checkForUpdate();}
+          });
+        }
+      });
+      setInterval(function(){reg.update();},5*60*1000);
+    }).catch(function(err){console.warn('Service Worker non enregistre:',err);});
+  }
+}
+
+// Referentiel magasins.csv reseau (code/libelle/animateur/animateurEmail), remplace
+// depuis le 21/08 l'ancienne liste de magasins geree a la main (limitee aux 4
+// magasins de Vanessa). Fallback minimal si le premier chargement se fait hors
+// reseau, avant que le cache local existe.
+var DEFAULT_MAGASINS=[
+  {code:"MGT",libelle:"Montgeron",animateur:"",animateurEmail:""},
+  {code:"VIT",libelle:"Vitry-sur-Seine",animateur:"",animateurEmail:""},
+  {code:"QUI",libelle:"Quincy-sous-Senart",animateur:"",animateurEmail:""},
+  {code:"FRE",libelle:"Fresnes",animateur:"",animateurEmail:""}
+];
+var DEFAULT_THEMES=['Accueil client','Facing montures','Depistage audio','Rappels devis','Ventes NDV','Formations','Proprete rangement','Organisation equipe'];
+
+var magasins=[], currentAR='', themes, obs, locked, tone;
+
+// ---------- Login Zimbra (17/09) ----------
+// Ajouté pour Observations Terrain car l'animateur est en tournée (contrairement
+// à PEDLV/Kaizen posés en magasin) — même schéma que Bilan de Passage et
+// Évaluation Équipe, décision Olivier.
+function loadSession(){
+  try{
+    var raw=localStorage.getItem('obs_ar_session');
+    if(raw){
+      var s=JSON.parse(raw);
+      if(s.exp>Date.now()) arSession=s;
+    }
+  }catch(e){}
+}
+
+function logout(){
+  localStorage.removeItem('obs_ar_session');
+  location.reload();
+}
+
+async function populateLoginArSelect(savedUser){
+  var sel=document.getElementById('login-ar-select');
+  try{
+    var r=await fetch(MAGASINS_CSV_URL,{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    var text=await r.text();
+    var rows=parseMagasinsCSV(text).filter(function(m){return m.animateur && m.animateurEmail;});
+    var seen={}, list=[];
+    rows.forEach(function(m){ if(!seen[m.animateur]){ seen[m.animateur]=1; list.push([m.animateur, m.animateurEmail]); } });
+    list.sort(function(a,b){return a[0].localeCompare(b[0]);});
+    var h='<option value="">— Choisir un animateur —</option>';
+    list.forEach(function(p){ h+='<option value="'+p[1]+'">'+p[0]+'</option>'; });
+    h+='<option value="__manual__">Autre identifiant Zimbra…</option>';
+    sel.innerHTML=h;
+    var match=list.filter(function(p){return p[1]===savedUser;})[0];
+    if(match){ sel.value=savedUser; onLoginArChange(savedUser); }
+    else if(savedUser){ sel.value='__manual__'; onLoginArChange('__manual__'); }
+  }catch(e){
+    console.warn('Chargement liste AR (login) echoue:', e);
+    sel.innerHTML='<option value="__manual__">Identifiant Zimbra…</option>';
+    sel.value='__manual__';
+    onLoginArChange('__manual__');
+  }
+}
+
+function onLoginArChange(val){
+  var manualInput=document.getElementById('login-user');
+  if(val==='__manual__'){
+    manualInput.style.display='block';
+    if(!manualInput.value||manualInput.value==='__manual__') manualInput.value='';
+    manualInput.focus();
+  }else{
+    manualInput.style.display='none';
+    manualInput.value=val;
+  }
+}
+
+async function doLogin(){
+  var errEl=document.getElementById('login-error');
+  errEl.style.display='none';
+  var zimbraUser=document.getElementById('login-user').value.trim();
+  var zimbraPass=document.getElementById('login-pass').value;
+  var btn=document.getElementById('login-btn');
+  if(!zimbraUser){ errEl.textContent='Identifiant Zimbra requis'; errEl.style.display='block'; return; }
+  if(!zimbraPass){ errEl.textContent='Mot de passe requis'; errEl.style.display='block'; return; }
+  localStorage.setItem('obs_zimbra_user', zimbraUser);
+  btn.disabled=true; btn.textContent='Connexion...';
+  try{
+    var resp=await fetch(RELAY+'/ar-login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({zimbraUser:zimbraUser, zimbraPass:zimbraPass})
+    });
+    var rawText=await resp.text();
+    var data; try{ data=JSON.parse(rawText); }catch(e){ data={error:rawText}; }
+    if(!resp.ok||data.error) throw new Error(data.error||('Erreur '+resp.status));
+    arSession={token:data.sessionToken, ar:data.ar, login:zimbraUser, exp:Date.now()+data.expiresInMs};
+    localStorage.setItem('obs_ar_session', JSON.stringify(arSession));
+    document.getElementById('login-pass').value='';
+    await startApp();
+  }catch(e){
+    errEl.textContent=e.message;
+    errEl.style.display='block';
+  }finally{
+    btn.disabled=false; btn.textContent='Se connecter';
+  }
+}
+
+async function startApp(){
+  currentAR=(arSession.ar==='ALL') ? '__ALL__' : arSession.ar;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-wrap').style.display='block';
+  document.getElementById('session-label').textContent=(arSession.ar==='ALL')?'tout le reseau':arSession.ar;
+  loadAll();
+  fillSel('sel-th',themes);
+  await loadMagasins();
+  fillMagSel();
+  drawToday();
+  updVZ();
+}
+
+
+function saveAll(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify({themes:themes,obs:obs,locked:locked}));
+  }catch(e){}
+}
+
+function loadAll(){
+  try{
+    var raw=localStorage.getItem(KEY);
+    if(raw){
+      var d=JSON.parse(raw);
+      themes=d.themes||DEFAULT_THEMES;
+      obs=d.obs||[];
+      locked=d.locked||{};
+    } else {
+      themes=DEFAULT_THEMES.slice();
+      obs=[];
+      locked={};
+    }
+  }catch(e){
+    themes=DEFAULT_THEMES.slice();
+    obs=[];
+    locked={};
+  }
+  tone=null;
+}
+
+// Charge magasins.csv (referentiel reseau partage avec Bilan de Passage et
+// Pour etre dans le vert). Cache local en repli si hors reseau, puis liste de
+// demonstration en tout dernier recours (voir DEFAULT_MAGASINS).
+function parseMagasinsCSV(text){
+  var lines=text.split(/\r?\n/).filter(Boolean);
+  if(!lines.length) return [];
+  var header=lines[0].split(';').map(function(h){return h.trim();});
+  var idxCode=header.indexOf('code');
+  var idxLibelle=header.indexOf('libelle');
+  var idxAnimateur=header.indexOf('animateur');
+  var idxEmail=header.indexOf('animateur_email');
+  var rows=[];
+  for(var i=1;i<lines.length;i++){
+    var cols=lines[i].split(';');
+    var code=(cols[idxCode]||'').trim();
+    if(!code) continue;
+    rows.push({
+      code:code,
+      libelle:idxLibelle>=0?(cols[idxLibelle]||'').trim():'',
+      animateur:idxAnimateur>=0?(cols[idxAnimateur]||'').trim():'',
+      animateurEmail:idxEmail>=0?(cols[idxEmail]||'').trim():''
+    });
+  }
+  return rows;
+}
+
+function loadMagasins(){
+  var doFetch=fetch(MAGASINS_CSV_URL+'?v='+Date.now()).then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.text();
+  }).then(function(text){
+    var rows=parseMagasinsCSV(text);
+    if(rows.length){
+      magasins=rows;
+      try{ localStorage.setItem(MAGASINS_CACHE_KEY, JSON.stringify(rows)); }catch(e){}
+    }
+  }).catch(function(e){ console.warn('Chargement magasins.csv:', e); });
+
+  return doFetch.then(function(){
+    if(!magasins.length){
+      try{ magasins=JSON.parse(localStorage.getItem(MAGASINS_CACHE_KEY)||'[]'); }catch(e){}
+    }
+    if(!magasins.length){ magasins=DEFAULT_MAGASINS.slice(); }
+  });
+}
+
+function reloadMagasins(){
+  magasins=[];
+  loadMagasins().then(function(){
+    fillMagSel();
+    alert('Referentiel magasins recharge — '+magasins.length+' magasins.');
+  });
+}
+
+function fillMagSel(){
+  var list=(!currentAR || currentAR==='__ALL__') ? magasins : magasins.filter(function(m){return m.animateur===currentAR;});
+  list=list.slice().sort(function(a,b){return a.libelle.localeCompare(b.libelle);});
+  var s=document.getElementById('sel-mag');
+  var c=s.value;
+  var h='<option value="">Magasin...</option>';
+  list.forEach(function(m){ h+='<option'+(m.libelle===c?' selected':'')+'>'+m.libelle+'</option>'; });
+  s.innerHTML=h;
+}
+
+function dk(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
+function dl(){var d=new Date();return JOURS[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1);}
+function isLocked(){return !!locked[dk()];}
+
+function go(i){
+  for(var n=0;n<4;n++){
+    document.getElementById('t'+n).className='tab'+(n===i?' on':'');
+    document.getElementById('p'+n).className='pnl'+(n===i?' on':'');
+  }
+  if(i===1) drawGeneralList();
+  if(i===2) drawWeek();
+  if(i===3){drawTHL();}
+}
+
+function fillSel(id,items){
+  var s=document.getElementById(id);
+  var c=s.value;
+  var h='<option value="">'+(id==='sel-mag'?'Magasin...':'Theme...')+'</option>';
+  for(var i=0;i<items.length;i++) h+='<option'+(items[i]===c?' selected':'')+'>'+items[i]+'</option>';
+  s.innerHTML=h;
+}
+
+function setT(t){
+  tone=t;
+  document.getElementById('tp').className='tog'+(t==='p'?' gon':'');
+  document.getElementById('tn').className='tog'+(t==='n'?' ron':'');
+}
+
+function updVZ(){
+  var today=obs.filter(function(o){return o.d===dk();});
+  var lk=isLocked();
+  document.getElementById('fz').style.display=lk?'none':'block';
+  document.getElementById('lkmsg').style.display=lk?'block':'none';
+  document.getElementById('vz').style.display=(!lk&&today.length>0)?'block':'none';
+}
+
+function isoDate(dkStr){
+  var p=dkStr.split('-');
+  return p[0]+'-'+(p[1].length<2?'0'+p[1]:p[1])+'-'+(p[2].length<2?'0'+p[2]:p[2]);
+}
+
+function add(){
+  if(isLocked())return;
+  var m=document.getElementById('sel-mag').value;
+  var th=document.getElementById('sel-th').value;
+  var tx=document.getElementById('txt').value.trim();
+  if(!m||!th||!tx||!tone){alert('Remplis tous les champs et choisis positif ou a ameliorer.');return;}
+  var o={m:m,th:th,tx:tx,t:tone,d:dk(),dl:dl(),id:Date.now()};
+  obs.push(o);
+  saveAll();
+  document.getElementById('sel-mag').value='';
+  document.getElementById('sel-th').value='';
+  document.getElementById('txt').value='';
+  tone=null;setT(null);
+  drawToday();updVZ();
+
+  fetch(RELAY+'/store-observation',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-AR-Session':(arSession?arSession.token:'')},
+    body:JSON.stringify({m:o.m,th:o.th,tx:o.tx,t:o.t,d:isoDate(o.d),dl:o.dl,id:o.id})
+  }).catch(function(e){console.warn('store-observation echouee:',e);});
+}
+
+function del(id){
+  if(isLocked())return;
+  obs=obs.filter(function(o){return o.id!==id;});
+  saveAll();drawToday();updVZ();
+}
+
+// ── DICTEE VOCALE ──
+var micRecognition=null;
+var micActive=false;
+
+function stopMic(){
+  if(micRecognition){try{micRecognition.stop();}catch(e){}}
+  micActive=false;
+  var btns=document.querySelectorAll('.mic-btn.listening');
+  for(var i=0;i<btns.length;i++){btns[i].className='mic-btn';}
+}
+
+function startMicFor(fieldId){
+  var btn=document.querySelector('[onclick="startMicFor(\''+fieldId+'\')"]');
+  if(micActive){
+    var wasThisField=btn&&btn.className.indexOf('listening')>=0;
+    stopMic();
+    if(wasThisField)return;
+  }
+
+  var SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechRecognition){alert('Dictee vocale non supportee sur ce navigateur');return;}
+
+  var field=document.getElementById(fieldId);
+  if(!field)return;
+  field.focus();
+
+  micRecognition=new SpeechRecognition();
+  micRecognition.lang='fr-FR';
+  micRecognition.continuous=false;
+  micRecognition.interimResults=true;
+  micRecognition.maxAlternatives=1;
+
+  var interimStart=-1;
+  var afterText='';
+
+  micRecognition.onstart=function(){
+    micActive=true;
+    if(btn)btn.className='mic-btn listening';
+  };
+
+  micRecognition.onresult=function(event){
+    var transcript=event.results[0][0].transcript;
+    var isFinal=event.results[0].isFinal;
+
+    if(interimStart===-1){
+      var start=field.selectionStart;
+      var end=field.selectionEnd;
+      interimStart=start;
+      afterText=field.value.slice(end);
+      field.value=field.value.slice(0,start)+transcript+afterText;
+    }else{
+      var before=field.value.slice(0,interimStart);
+      field.value=before+transcript+afterText;
+    }
+
+    if(isFinal){
+      var sep=(afterText&&!/^\s/.test(afterText))?' ':'';
+      var before2=field.value.slice(0,interimStart);
+      field.value=before2+transcript+sep+afterText;
+      var newPos=interimStart+transcript.length+sep.length;
+      field.setSelectionRange(newPos,newPos);
+      interimStart=-1;afterText='';
+    }
+  };
+
+  micRecognition.onerror=function(event){
+    stopMic();
+    if(event.error!=='no-speech'&&event.error!=='aborted'){
+      console.warn('Erreur dictee:',event.error);
+    }
+  };
+
+  micRecognition.onend=function(){stopMic();};
+
+  micRecognition.start();
+}
+
+function addGeneral(){
+  var tx=document.getElementById('gtxt').value.trim();
+  if(!tx){alert('Ecris ou dicte une info avant d\'ajouter.');return;}
+  var o={m:'Info generale',th:'Info generale',tx:tx,t:'p',d:dk(),dl:dl(),id:Date.now()};
+  obs.push(o);
+  saveAll();
+  document.getElementById('gtxt').value='';
+  drawGeneralList();
+
+  fetch(RELAY+'/store-observation',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','X-AR-Session':(arSession?arSession.token:'')},
+    body:JSON.stringify({m:o.m,th:o.th,tx:o.tx,t:o.t,d:isoDate(o.d),dl:o.dl,id:o.id})
+  }).catch(function(e){console.warn('store-observation echouee:',e);});
+}
+
+function delGeneral(id){
+  obs=obs.filter(function(o){return o.id!==id;});
+  saveAll();drawGeneralList();
+}
+
+function drawGeneralList(){
+  var list=obs.filter(function(o){return o.m==='Info generale';});
+  var el=document.getElementById('glist');
+  if(!list.length){el.innerHTML='<div class="empty">Aucune info generale cette semaine</div>';return;}
+  var h='';
+  for(var i=0;i<list.length;i++){
+    var o=list[i];
+    h+='<div class="oc pos">'
+      +'<div class="om">'+o.dl+'</div>'
+      +'<div class="ot">'+o.tx+'</div>'
+      +'<button class="xb" onclick="delGeneral('+o.id+')">&#215;</button>'
+      +'</div>';
+  }
+  el.innerHTML=h;
+}
+
+function drawToday(){
+  var list=obs.filter(function(o){return o.d===dk() && o.m!=='Info generale';});
+  var el=document.getElementById('tlist');
+  var lk=isLocked();
+  if(!list.length){el.innerHTML='<div class="empty">Aucune observation aujourd\'hui</div>';return;}
+  var h='';
+  for(var i=0;i<list.length;i++){
+    var o=list[i];
+    h+='<div class="oc '+(o.t==='p'?'pos':'neg')+'">'
+      +'<div class="om">'+o.m+' &mdash; '+o.th+'</div>'
+      +'<div class="ot'+(lk?' lk':'')+'">'+o.tx+'</div>'
+      +(lk?'':'<button class="xb" onclick="del('+o.id+')">&#215;</button>')
+      +'</div>';
+  }
+  el.innerHTML=h;
+}
+
+function valDay(){
+  var today=obs.filter(function(o){return o.d===dk();});
+  if(!today.length){alert('Aucune observation a valider.');return;}
+  if(confirm('Valider et figer les '+today.length+' observation'+(today.length>1?'s':'')+' ?')){
+    locked[dk()]=true;
+    saveAll();drawToday();updVZ();
+
+    // Clôture de journée (22/08) : un mail par magasin visité aujourd'hui,
+    // envoye a Olivier uniquement, en plus du com hebdo automatique du
+    // dimanche. Le contenu du jour (obs, deja en memoire cote client) est
+    // envoye tel quel, jamais reconstitue cote Worker a partir de D1 — ca
+    // evite tout risque de melanger les observations d'un autre AR saisies
+    // le meme jour sur d'autres magasins.
+    var todayMagasins=today.filter(function(o){return o.m!=='Info generale';});
+    if(todayMagasins.length){
+      fetch(RELAY+'/obs-day-close',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-AR-Session':(arSession?arSession.token:'')},
+        body:JSON.stringify({
+          ar:currentAR||'',
+          date:isoDate(dk()),
+          dateLabel:dl(),
+          items:todayMagasins.map(function(o){return {m:o.m,th:o.th,tx:o.tx,t:o.t};})
+        })
+      }).catch(function(e){console.warn('obs-day-close echouee:',e);});
+    }
+  }
+}
+
+function drawWeek(){
+  var el=document.getElementById('wsum');
+  if(!obs.length){el.innerHTML='<div class="empty">Aucune observation cette semaine</div>';return;}
+  var byD={};var ord=[];
+  for(var i=0;i<obs.length;i++){
+    var o=obs[i];
+    if(!byD[o.d]){byD[o.d]={label:o.dl,items:[]};ord.push(o.d);}
+    byD[o.d].items.push(o);
+  }
+  var h='<div class="badge">'+obs.length+' observation'+(obs.length>1?'s':'')+' cette semaine</div>';
+  for(var d=0;d<ord.length;d++){
+    var key=ord[d];var day=byD[key];var lk=!!locked[key];
+    h+='<div style="margin-bottom:14px">'
+      +'<div class="dh"><span class="dt">'+day.label+'</span>'
+      +'<div class="dm"><span class="dc">'+day.items.length+' obs.</span>'
+      +'<span class="dv '+(lk?'ok':'ko')+'">'+(lk?'Valide':'En cours')+'</span>'
+      +'</div></div>';
+    for(var j=0;j<day.items.length;j++){
+      var ob=day.items[j];
+      h+='<div class="oc '+(ob.t==='p'?'pos':'neg')+'">'
+        +'<div class="om">'+ob.m+' &mdash; '+ob.th+' &mdash; '+(ob.t==='p'?'Positif':'A ameliorer')+'</div>'
+        +'<div class="ot lk">'+ob.tx+'</div>'
+        +'</div>';
+    }
+    h+='</div>';
+  }
+  el.innerHTML=h;
+}
+
+// gen()/sendObs() retires le 21/08 : la communication hebdo (Slack + mail) part
+// desormais automatiquement chaque dimanche cote Worker, a partir des memes
+// observations (voir generateComHebdo cote worker.js) — ce bouton manuel etait
+// devenu redondant. L'onglet Semaine garde uniquement le recap de lecture et le
+// bouton d'effacement ci-dessous.
+
+function reset(){
+  if(confirm('Effacer toutes les observations de la semaine ?')){
+    obs=[];locked={};
+    saveAll();
+    drawToday();updVZ();
+  }
+}
+
+function drawTHL(){
+  var el=document.getElementById('thl');
+  if(!themes.length){el.innerHTML='<div class="empty">Aucun theme</div>';return;}
+  var h='';
+  for(var i=0;i<themes.length;i++) h+='<div class="pi"><span>'+themes[i]+'</span><button class="xb" style="position:relative;top:auto;right:auto;padding:4px;" onclick="delTH('+i+')">&#215;</button></div>';
+  el.innerHTML=h;
+}
+function addTh(){var v=document.getElementById('nt').value.trim();if(!v||themes.indexOf(v)>=0)return;themes.push(v);document.getElementById('nt').value='';saveAll();fillSel('sel-th',themes);drawTHL();}
+function delTH(i){themes.splice(i,1);saveAll();fillSel('sel-th',themes);drawTHL();}
+
+registerServiceWorker();
+checkForUpdate();
+loadSession();
+var savedZimbraUser=localStorage.getItem('obs_zimbra_user')||'';
+document.getElementById('login-user').value=savedZimbraUser;
+populateLoginArSelect(savedZimbraUser);
+if(arSession && arSession.exp>Date.now()){ startApp(); }
+</script>
+</body>
+</html>
