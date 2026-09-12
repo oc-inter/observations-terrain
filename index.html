@@ -93,7 +93,7 @@ input[type=text]::placeholder,textarea::placeholder{color:var(--mu);}
 <div id="app-wrap" style="display:none">
 <h1>Observations <span>Terrain</span></h1>
 <p class="sub">Saisie des visites magasins</p>
-<p class="sub" style="margin-top:-14px">Connecté : <span id="session-label">—</span> · <a href="#" onclick="logout();return false" style="color:var(--mu)">déconnexion</a></p>
+<p class="sub" style="margin-top:-14px"><span id="connected-label">Connecté</span> : <span id="session-label">—</span> · <a href="#" onclick="logout();return false" style="color:var(--mu)" id="logout-link">déconnexion</a></p>
 <div class="card">
   <div class="tabs">
     <div class="tab on" id="t0" onclick="go(0)">Saisie</div>
@@ -178,9 +178,210 @@ var KEY='oc_terrain_v1';
 var RELAY='https://oc-inter-relay.cecilia-lecomte.workers.dev';
 var MAGASINS_CSV_URL='https://raw.githubusercontent.com/oc-inter/bilan-passage/main/magasins_inter.csv';
 var arSession=null;
+
+// ---------- i18n (17/09) ----------
+// Langue résolue automatiquement depuis la session Zimbra (langueUI renvoyée
+// par /ar-login, même mécanisme que Bilan de Passage/Évaluation Équipe) —
+// pas de sélecteur manuel. L'écran de login reste en français, comme pour
+// les autres apps (avant identification, on ne connaît pas encore la langue).
+var currentLang='fr';
+
+var TRANSLATIONS={
+  fr:{
+    sub:'Saisie des visites magasins',
+    connected:'Connecté',
+    all_network:'tout le reseau',
+    logout:'déconnexion',
+    tab_saisie:'Saisie', tab_general:'Info generale', tab_semaine:'Semaine', tab_reglages:'Reglages',
+    day_locked:'Journee validee — observations figees',
+    new_obs:'Nouvelle observation',
+    ph_magasin:'Magasin...', ph_theme:'Theme...',
+    lbl_observation:'Observation',
+    ph_observation:'Ce que tu as vu, entendu, constate...',
+    tog_positif:'+ Positif', tog_ameliorer:'- A ameliorer',
+    btn_ajouter:'Ajouter',
+    lbl_aujourdhui:'Aujourd\'hui',
+    empty_today:'Aucune observation aujourd\'hui',
+    btn_terminer_jour:'Terminer la journee ✓',
+    lbl_info_generale:'Info generale',
+    ginfo_general:'Pour des infos plus larges que ce que tu vois en magasin (contexte reseau, remontees terrain generales, tendances...)',
+    ph_info_generale:'Info generale de la semaine, hors observations magasin par magasin...',
+    lbl_cette_semaine:'Cette semaine',
+    empty_general:'Aucune info generale cette semaine',
+    lbl_recap_semaine:'Recap semaine',
+    empty_week:'Aucune observation cette semaine',
+    ginfo_comhebdo:'La communication hebdo (Slack + mail) part automatiquement chaque dimanche a partir de ces observations, avec le reste du reseau (bilans de passage, PEDLV, Kaizen).',
+    btn_nouvelle_semaine:'Nouvelle semaine — effacer tout',
+    lbl_magasins:'Magasins',
+    ginfo_magasins:'La liste des magasins vient du referentiel reseau (magasins.csv), filtree par l\'animateur choisi dans l\'onglet Saisie.',
+    btn_recharger:'🔄 Recharger le referentiel magasins',
+    lbl_themes:'Themes',
+    ph_nouveau_theme:'Nouveau theme...',
+    note_saved:'Donnees sauvegardees automatiquement',
+    empty_theme:'Aucun theme',
+    obs_singular:'observation', obs_plural:'observations',
+    obs_this_week:'cette semaine',
+    status_valide:'Valide', status_encours:'En cours',
+    positif:'Positif', ameliorer:'A ameliorer',
+    update_banner:'🔄 Nouvelle version de l\'application disponible',
+    update_btn:'Mettre a jour',
+    alert_fill_fields:'Remplis tous les champs et choisis positif ou a ameliorer.',
+    alert_write_info:'Ecris ou dicte une info avant d\'ajouter.',
+    alert_no_obs:'Aucune observation a valider.',
+    confirm_valider:'Valider et figer les {n} observation{s} ?',
+    confirm_effacer:'Effacer toutes les observations de la semaine ?',
+    reload_done:'Referentiel magasins recharge — {n} magasins.',
+    jours:['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'],
+    themes_defaut:['Accueil client','Facing montures','Depistage audio','Rappels devis','Ventes NDV','Formations','Proprete rangement','Organisation equipe'],
+  },
+  en:{
+    sub:'Store visit entries',
+    connected:'Logged in as',
+    all_network:'whole network',
+    logout:'log out',
+    tab_saisie:'Entry', tab_general:'General info', tab_semaine:'Week', tab_reglages:'Settings',
+    day_locked:'Day validated — observations locked',
+    new_obs:'New observation',
+    ph_magasin:'Store...', ph_theme:'Theme...',
+    lbl_observation:'Observation',
+    ph_observation:'What you saw, heard, noticed...',
+    tog_positif:'+ Positive', tog_ameliorer:'- To improve',
+    btn_ajouter:'Add',
+    lbl_aujourdhui:'Today',
+    empty_today:'No observation today',
+    btn_terminer_jour:'Finish the day ✓',
+    lbl_info_generale:'General info',
+    ginfo_general:'For broader information than what you see in-store (network context, general field feedback, trends...)',
+    ph_info_generale:'General info for the week, beyond store-by-store observations...',
+    lbl_cette_semaine:'This week',
+    empty_general:'No general info this week',
+    lbl_recap_semaine:'Week summary',
+    empty_week:'No observation this week',
+    ginfo_comhebdo:'The weekly communication (Slack + email) is sent automatically every Sunday from these observations, along with the rest of the network (visit reports, PEDLV, Kaizen).',
+    btn_nouvelle_semaine:'New week — clear all',
+    lbl_magasins:'Stores',
+    ginfo_magasins:'The store list comes from the network reference file (magasins.csv), filtered by the manager chosen in the Entry tab.',
+    btn_recharger:'🔄 Reload store reference data',
+    lbl_themes:'Themes',
+    ph_nouveau_theme:'New theme...',
+    note_saved:'Data saved automatically',
+    empty_theme:'No theme',
+    obs_singular:'observation', obs_plural:'observations',
+    obs_this_week:'this week',
+    status_valide:'Validated', status_encours:'In progress',
+    positif:'Positive', ameliorer:'To improve',
+    update_banner:'🔄 A new version of the app is available',
+    update_btn:'Update',
+    alert_fill_fields:'Fill in all fields and choose positive or to improve.',
+    alert_write_info:'Write or dictate a note before adding.',
+    alert_no_obs:'No observation to validate.',
+    confirm_valider:'Validate and lock the {n} observation{s}?',
+    confirm_effacer:'Clear all observations for the week?',
+    reload_done:'Store reference data reloaded — {n} stores.',
+    jours:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+    themes_defaut:['Customer welcome','Frame display','Hearing screening','Quote follow-ups','Add-on sales','Training','Cleanliness & tidiness','Team organisation'],
+  },
+  es:{
+    sub:'Registro de visitas a tiendas',
+    connected:'Conectado como',
+    all_network:'toda la red',
+    logout:'cerrar sesión',
+    tab_saisie:'Registro', tab_general:'Info general', tab_semaine:'Semana', tab_reglages:'Ajustes',
+    day_locked:'Día validado — observaciones bloqueadas',
+    new_obs:'Nueva observación',
+    ph_magasin:'Tienda...', ph_theme:'Tema...',
+    lbl_observation:'Observación',
+    ph_observation:'Lo que has visto, oído, constatado...',
+    tog_positif:'+ Positivo', tog_ameliorer:'- A mejorar',
+    btn_ajouter:'Añadir',
+    lbl_aujourdhui:'Hoy',
+    empty_today:'Ninguna observación hoy',
+    btn_terminer_jour:'Terminar el día ✓',
+    lbl_info_generale:'Info general',
+    ginfo_general:'Para información más amplia que lo que ves en tienda (contexto de red, comentarios generales de campo, tendencias...)',
+    ph_info_generale:'Info general de la semana, más allá de las observaciones tienda por tienda...',
+    lbl_cette_semaine:'Esta semana',
+    empty_general:'Ninguna info general esta semana',
+    lbl_recap_semaine:'Resumen semanal',
+    empty_week:'Ninguna observación esta semana',
+    ginfo_comhebdo:'La comunicación semanal (Slack + correo) se envía automáticamente cada domingo a partir de estas observaciones, junto con el resto de la red (informes de visita, PEDLV, Kaizen).',
+    btn_nouvelle_semaine:'Nueva semana — borrar todo',
+    lbl_magasins:'Tiendas',
+    ginfo_magasins:'La lista de tiendas proviene del archivo de referencia de la red (magasins.csv), filtrada por el responsable elegido en la pestaña Registro.',
+    btn_recharger:'🔄 Recargar el listado de tiendas',
+    lbl_themes:'Temas',
+    ph_nouveau_theme:'Nuevo tema...',
+    note_saved:'Datos guardados automáticamente',
+    empty_theme:'Ningún tema',
+    obs_singular:'observación', obs_plural:'observaciones',
+    obs_this_week:'esta semana',
+    status_valide:'Validado', status_encours:'En curso',
+    positif:'Positivo', ameliorer:'A mejorar',
+    update_banner:'🔄 Hay una nueva versión de la aplicación disponible',
+    update_btn:'Actualizar',
+    alert_fill_fields:'Completa todos los campos y elige positivo o a mejorar.',
+    alert_write_info:'Escribe o dicta una nota antes de añadir.',
+    alert_no_obs:'Ninguna observación que validar.',
+    confirm_valider:'¿Validar y bloquear {n} observación(es)?',
+    confirm_effacer:'¿Borrar todas las observaciones de la semana?',
+    reload_done:'Listado de tiendas recargado — {n} tiendas.',
+    jours:['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'],
+    themes_defaut:['Acogida al cliente','Exposición de monturas','Cribado auditivo','Seguimiento de presupuestos','Ventas adicionales','Formación','Limpieza y orden','Organización del equipo'],
+  },
+};
+
+function tr(key, vars){
+  var dict=TRANSLATIONS[currentLang]||TRANSLATIONS.fr;
+  var text=dict[key]!==undefined?dict[key]:(TRANSLATIONS.fr[key]!==undefined?TRANSLATIONS.fr[key]:key);
+  if(vars){
+    Object.keys(vars).forEach(function(k){
+      text=text.replace(new RegExp('\\{'+k+'\\}','g'), vars[k]);
+    });
+  }
+  return text;
+}
+
+function applyI18n(){
+  document.querySelectorAll('#app-wrap > p.sub')[0].textContent=tr('sub');
+  document.getElementById('t0').textContent=tr('tab_saisie');
+  document.getElementById('t1').textContent=tr('tab_general');
+  document.getElementById('t2').textContent=tr('tab_semaine');
+  document.getElementById('t3').textContent=tr('tab_reglages');
+  document.getElementById('lkmsg').textContent=tr('day_locked');
+  document.querySelectorAll('#fz .lbl')[0].textContent=tr('new_obs');
+  document.getElementById('sel-mag').options[0].textContent=tr('ph_magasin');
+  document.getElementById('sel-th').options[0].textContent=tr('ph_theme');
+  document.querySelectorAll('#p0 .mic-row label')[0].textContent=tr('lbl_observation');
+  document.getElementById('txt').placeholder=tr('ph_observation');
+  document.getElementById('tp').textContent=tr('tog_positif');
+  document.getElementById('tn').textContent=tr('tog_ameliorer');
+  document.querySelectorAll('#p0 .btn-r')[0].textContent=tr('btn_ajouter');
+  document.querySelectorAll('#p0 .lbl')[1].textContent=tr('lbl_aujourdhui');
+  document.querySelectorAll('#vz .btn-g')[0].textContent=tr('btn_terminer_jour');
+  document.querySelectorAll('#p1 .lbl')[0].textContent=tr('lbl_info_generale');
+  document.querySelectorAll('#p1 .ginfo')[0].textContent=tr('ginfo_general');
+  document.querySelectorAll('#p1 .mic-row label')[0].textContent=tr('lbl_observation');
+  document.getElementById('gtxt').placeholder=tr('ph_info_generale');
+  document.querySelectorAll('#p1 .btn-r')[0].textContent=tr('btn_ajouter');
+  document.querySelectorAll('#p1 .lbl')[1].textContent=tr('lbl_cette_semaine');
+  document.querySelectorAll('#p2 .lbl')[0].textContent=tr('lbl_recap_semaine');
+  document.querySelectorAll('#p2 .ginfo')[0].textContent=tr('ginfo_comhebdo');
+  document.querySelectorAll('#p2 .btn-mu')[0].textContent=tr('btn_nouvelle_semaine');
+  document.querySelectorAll('#p3 .lbl')[0].textContent=tr('lbl_magasins');
+  document.querySelectorAll('#p3 .ginfo')[0].textContent=tr('ginfo_magasins');
+  document.querySelectorAll('#p3 .btn-o')[0].textContent=tr('btn_recharger');
+  document.querySelectorAll('#p3 .lbl')[1].textContent=tr('lbl_themes');
+  document.getElementById('nt').placeholder=tr('ph_nouveau_theme');
+  document.querySelectorAll('#p3 .note')[0].childNodes[0].textContent=tr('note_saved')+' ';
+  document.getElementById('connected-label').textContent=tr('connected');
+  document.getElementById('logout-link').textContent=tr('logout');
+  document.querySelector('#update-banner span').textContent=tr('update_banner');
+  document.querySelector('#update-banner button').textContent=tr('update_btn');
+}
+
 var MAGASINS_CACHE_KEY='obs_magasins_cache';
 var AR_FILTER_KEY='obs_current_ar';
-var APP_VERSION='2026.09.12-1';
+var APP_VERSION='2026.09.12-2';
 
 function checkForUpdate(){
   var updatePending=localStorage.getItem('obs_update_pending');
@@ -328,7 +529,7 @@ async function doLogin(){
     var rawText=await resp.text();
     var data; try{ data=JSON.parse(rawText); }catch(e){ data={error:rawText}; }
     if(!resp.ok||data.error) throw new Error(data.error||('Erreur '+resp.status));
-    arSession={token:data.sessionToken, ar:data.ar, login:zimbraUser, exp:Date.now()+data.expiresInMs};
+    arSession={token:data.sessionToken, ar:data.ar, langueUI:data.langueUI||'FR', login:zimbraUser, exp:Date.now()+data.expiresInMs};
     localStorage.setItem('obs_ar_session', JSON.stringify(arSession));
     document.getElementById('login-pass').value='';
     await startApp();
@@ -341,10 +542,12 @@ async function doLogin(){
 }
 
 async function startApp(){
+  currentLang=(arSession.langueUI||'fr').toLowerCase();
   currentAR=(arSession.ar==='ALL') ? '__ALL__' : arSession.ar;
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app-wrap').style.display='block';
-  document.getElementById('session-label').textContent=(arSession.ar==='ALL')?'tout le reseau':arSession.ar;
+  applyI18n();
+  document.getElementById('session-label').textContent=(arSession.ar==='ALL')?tr('all_network'):arSession.ar;
   loadAll();
   fillSel('sel-th',themes);
   await loadMagasins();
@@ -365,16 +568,16 @@ function loadAll(){
     var raw=localStorage.getItem(KEY);
     if(raw){
       var d=JSON.parse(raw);
-      themes=d.themes||DEFAULT_THEMES;
+      themes=d.themes||tr('themes_defaut');
       obs=d.obs||[];
       locked=d.locked||{};
     } else {
-      themes=DEFAULT_THEMES.slice();
+      themes=tr('themes_defaut').slice();
       obs=[];
       locked={};
     }
   }catch(e){
-    themes=DEFAULT_THEMES.slice();
+    themes=tr('themes_defaut').slice();
     obs=[];
     locked={};
   }
@@ -431,7 +634,7 @@ function reloadMagasins(){
   magasins=[];
   loadMagasins().then(function(){
     fillMagSel();
-    alert('Referentiel magasins recharge — '+magasins.length+' magasins.');
+    alert(tr('reload_done',{n:magasins.length}));
   });
 }
 
@@ -446,7 +649,7 @@ function fillMagSel(){
 }
 
 function dk(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();}
-function dl(){var d=new Date();return JOURS[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1);}
+function dl(){var d=new Date();var jours=tr('jours');return jours[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1);}
 function isLocked(){return !!locked[dk()];}
 
 function go(i){
@@ -491,7 +694,7 @@ function add(){
   var m=document.getElementById('sel-mag').value;
   var th=document.getElementById('sel-th').value;
   var tx=document.getElementById('txt').value.trim();
-  if(!m||!th||!tx||!tone){alert('Remplis tous les champs et choisis positif ou a ameliorer.');return;}
+  if(!m||!th||!tx||!tone){alert(tr('alert_fill_fields'));return;}
   var o={m:m,th:th,tx:tx,t:tone,d:dk(),dl:dl(),id:Date.now()};
   obs.push(o);
   saveAll();
@@ -593,7 +796,7 @@ function startMicFor(fieldId){
 
 function addGeneral(){
   var tx=document.getElementById('gtxt').value.trim();
-  if(!tx){alert('Ecris ou dicte une info avant d\'ajouter.');return;}
+  if(!tx){alert(tr('alert_write_info'));return;}
   var o={m:'Info generale',th:'Info generale',tx:tx,t:'p',d:dk(),dl:dl(),id:Date.now()};
   obs.push(o);
   saveAll();
@@ -615,7 +818,7 @@ function delGeneral(id){
 function drawGeneralList(){
   var list=obs.filter(function(o){return o.m==='Info generale';});
   var el=document.getElementById('glist');
-  if(!list.length){el.innerHTML='<div class="empty">Aucune info generale cette semaine</div>';return;}
+  if(!list.length){el.innerHTML='<div class="empty">'+tr('empty_general')+'</div>';return;}
   var h='';
   for(var i=0;i<list.length;i++){
     var o=list[i];
@@ -632,7 +835,7 @@ function drawToday(){
   var list=obs.filter(function(o){return o.d===dk() && o.m!=='Info generale';});
   var el=document.getElementById('tlist');
   var lk=isLocked();
-  if(!list.length){el.innerHTML='<div class="empty">Aucune observation aujourd\'hui</div>';return;}
+  if(!list.length){el.innerHTML='<div class="empty">'+tr('empty_today')+'</div>';return;}
   var h='';
   for(var i=0;i<list.length;i++){
     var o=list[i];
@@ -647,8 +850,8 @@ function drawToday(){
 
 function valDay(){
   var today=obs.filter(function(o){return o.d===dk();});
-  if(!today.length){alert('Aucune observation a valider.');return;}
-  if(confirm('Valider et figer les '+today.length+' observation'+(today.length>1?'s':'')+' ?')){
+  if(!today.length){alert(tr('alert_no_obs'));return;}
+  if(confirm(tr('confirm_valider',{n:today.length,s:(today.length>1?'s':'')}))){
     locked[dk()]=true;
     saveAll();drawToday();updVZ();
 
@@ -676,25 +879,25 @@ function valDay(){
 
 function drawWeek(){
   var el=document.getElementById('wsum');
-  if(!obs.length){el.innerHTML='<div class="empty">Aucune observation cette semaine</div>';return;}
+  if(!obs.length){el.innerHTML='<div class="empty">'+tr('empty_week')+'</div>';return;}
   var byD={};var ord=[];
   for(var i=0;i<obs.length;i++){
     var o=obs[i];
     if(!byD[o.d]){byD[o.d]={label:o.dl,items:[]};ord.push(o.d);}
     byD[o.d].items.push(o);
   }
-  var h='<div class="badge">'+obs.length+' observation'+(obs.length>1?'s':'')+' cette semaine</div>';
+  var h='<div class="badge">'+obs.length+' '+(obs.length>1?tr('obs_plural'):tr('obs_singular'))+' '+tr('obs_this_week')+'</div>';
   for(var d=0;d<ord.length;d++){
     var key=ord[d];var day=byD[key];var lk=!!locked[key];
     h+='<div style="margin-bottom:14px">'
       +'<div class="dh"><span class="dt">'+day.label+'</span>'
       +'<div class="dm"><span class="dc">'+day.items.length+' obs.</span>'
-      +'<span class="dv '+(lk?'ok':'ko')+'">'+(lk?'Valide':'En cours')+'</span>'
+      +'<span class="dv '+(lk?'ok':'ko')+'">'+(lk?tr('status_valide'):tr('status_encours'))+'</span>'
       +'</div></div>';
     for(var j=0;j<day.items.length;j++){
       var ob=day.items[j];
       h+='<div class="oc '+(ob.t==='p'?'pos':'neg')+'">'
-        +'<div class="om">'+ob.m+' &mdash; '+ob.th+' &mdash; '+(ob.t==='p'?'Positif':'A ameliorer')+'</div>'
+        +'<div class="om">'+ob.m+' &mdash; '+ob.th+' &mdash; '+(ob.t==='p'?tr('positif'):tr('ameliorer'))+'</div>'
         +'<div class="ot lk">'+ob.tx+'</div>'
         +'</div>';
     }
@@ -710,7 +913,7 @@ function drawWeek(){
 // bouton d'effacement ci-dessous.
 
 function reset(){
-  if(confirm('Effacer toutes les observations de la semaine ?')){
+  if(confirm(tr('confirm_effacer'))){
     obs=[];locked={};
     saveAll();
     drawToday();updVZ();
@@ -719,7 +922,7 @@ function reset(){
 
 function drawTHL(){
   var el=document.getElementById('thl');
-  if(!themes.length){el.innerHTML='<div class="empty">Aucun theme</div>';return;}
+  if(!themes.length){el.innerHTML='<div class="empty">'+tr('empty_theme')+'</div>';return;}
   var h='';
   for(var i=0;i<themes.length;i++) h+='<div class="pi"><span>'+themes[i]+'</span><button class="xb" style="position:relative;top:auto;right:auto;padding:4px;" onclick="delTH('+i+')">&#215;</button></div>';
   el.innerHTML=h;
