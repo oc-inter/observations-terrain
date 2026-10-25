@@ -19,7 +19,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{--red:#E2231A;--rd:#B5141A;--w:#FFF;--ow:#F5F5F5;--mu:#888884;--b1:rgba(255,255,255,0.08);--b2:rgba(255,255,255,0.18);--s1:rgba(255,255,255,0.04);--s2:rgba(255,255,255,0.08);--gr:#4CAF7D;}
 body{min-height:100vh;font-family:'Montserrat',sans-serif;color:var(--w);background:#0D0D0D;padding:20px 14px 60px;}
-h1{font-family:'Montserrat',sans-serif;font-size:26px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;text-align:center;margin-bottom:4px;}
+h1{font-family:'Montserrat',sans-serif;font-size:20px;font-weight:800;letter-spacing:0;text-transform:uppercase;text-align:center;margin-bottom:4px;}
 h1 span{color:var(--red);}
 .sub{font-size:12px;color:var(--mu);text-align:center;margin-bottom:18px;}
 .card{background:var(--s1);border:1px solid var(--b2);border-radius:16px;padding:18px 16px;max-width:480px;margin:0 auto;}
@@ -81,6 +81,17 @@ select,input,textarea,button{font-family:inherit}
 <div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#0D0D0D;border-bottom:2px solid var(--red);padding:10px 16px;align-items:center;gap:10px;font-family:'Montserrat',sans-serif">
   <span style="flex:1;color:#F5F5F5;font-size:13px">🔄 Nouvelle version de l'application disponible</span>
   <button onclick="applyUpdate()" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;font-family:'Montserrat',sans-serif;cursor:pointer;white-space:nowrap">Mettre à jour</button>
+</div>
+<div id="version-lock" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(13,13,13,0.97);align-items:center;justify-content:center;font-family:'Montserrat',sans-serif;padding:24px">
+  <div style="max-width:420px;text-align:center;background:#0D0D0D;border:2px solid var(--red);border-radius:16px;padding:32px 24px;box-shadow:0 12px 40px rgba(0,0,0,0.5)">
+    <div style="font-size:40px;margin-bottom:12px">🔒</div>
+    <div id="vl-title" style="color:#F5F5F5;font-size:18px;font-weight:700;margin-bottom:10px">Application obsolète</div>
+    <div id="vl-txt" style="color:#F5F5F5;font-size:14px;opacity:0.85;line-height:1.5;margin-bottom:22px">
+      Ce poste utilise une ancienne version de l'application.<br>
+      Elle n'est plus utilisable en l'état — merci de mettre à jour pour continuer.
+    </div>
+    <button onclick="applyUpdate()" id="version-lock-btn" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:12px 28px;font-size:15px;font-weight:700;font-family:'Montserrat',sans-serif;cursor:pointer">Mettre à jour maintenant</button>
+  </div>
 </div>
 <div id="login-screen" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:24px;text-align:center;max-width:340px;margin:0 auto">
   <h1 style="margin-bottom:18px">Observations <span>Terrain</span></h1>
@@ -189,6 +200,10 @@ var currentLang='fr';
 
 var TRANSLATIONS={
   fr:{
+    deeplink_hors_perimetre:"Magasin {code} hors de votre périmètre ou introuvable",
+    vl_title:"Application obsolète",
+    vl_txt:"Ce poste utilise une ancienne version de l'application. Merci de la mettre à jour pour continuer.",
+    vl_btn:"Mettre à jour maintenant",
     sub:'Saisie des visites magasins',
     connected:'Connecté',
     all_network:'tout le reseau',
@@ -236,6 +251,10 @@ var TRANSLATIONS={
     themes_defaut:['Accueil client','Facing montures','Depistage audio','Rappels devis','Ventes NDV','Formations','Proprete rangement','Organisation equipe'],
   },
   en:{
+    deeplink_hors_perimetre:"Store {code} is outside your scope or not found",
+    vl_title:"Outdated app",
+    vl_txt:"This device is running an old version of the app. Please update it to continue.",
+    vl_btn:"Update now",
     sub:'Store visit entries',
     connected:'Logged in as',
     all_network:'whole network',
@@ -283,6 +302,10 @@ var TRANSLATIONS={
     themes_defaut:['Customer welcome','Frame display','Hearing screening','Quote follow-ups','Add-on sales','Training','Cleanliness & tidiness','Team organisation'],
   },
   es:{
+    deeplink_hors_perimetre:"Tienda {code} fuera de tu perímetro o no encontrada",
+    vl_title:"Aplicación obsoleta",
+    vl_txt:"Este equipo usa una versión antigua de la aplicación. Actualízala para continuar.",
+    vl_btn:"Actualizar ahora",
     sub:'Registro de visitas a tiendas',
     connected:'Conectado como',
     all_network:'toda la red',
@@ -378,11 +401,16 @@ function applyI18n(){
   document.getElementById('logout-link').textContent=tr('logout');
   document.querySelector('#update-banner span').textContent=tr('update_banner');
   document.querySelector('#update-banner button').textContent=tr('update_btn');
+  document.getElementById('vl-title').textContent=tr('vl_title');
+  document.getElementById('vl-txt').textContent=tr('vl_txt');
+  document.getElementById('version-lock-btn').textContent=tr('vl_btn');
 }
 
 var MAGASINS_CACHE_KEY='obs_magasins_cache';
 var AR_FILTER_KEY='obs_current_ar';
-var APP_VERSION='2026.10.25-1';
+var APP_VERSION='2026.10.25-2';//a bumper avec SW_VERSION (sw.js) ET version.json a chaque deploiement
+
+var VERSION_CHECK_INTERVAL_MS=3*60*1000;
 
 function checkForUpdate(){
   var updatePending=localStorage.getItem('obs_update_pending');
@@ -399,8 +427,29 @@ function checkForUpdate(){
   }
 }
 
+function lockAppForUpdate(){
+  var lock=document.getElementById('version-lock');
+  if(lock)lock.style.display='flex';
+  var banner=document.getElementById('update-banner');
+  if(banner)banner.style.display='none';
+}
+
+function checkLatestVersionOnServer(){
+  fetch('version.json?_='+Date.now(),{cache:'no-store'}).then(function(res){
+    if(!res.ok)return;
+    return res.json();
+  }).then(function(data){
+    if(data&&data.version&&data.version!==APP_VERSION){
+      lockAppForUpdate();
+    }
+  }).catch(function(){
+    // Pas de reseau ou requete echouee : on ne bloque pas, nouvelle tentative
+    // au prochain cycle.
+  });
+}
+
 function applyUpdate(){
-  var btn=document.querySelector('#update-banner button');
+  var btn=document.getElementById('version-lock-btn')||document.querySelector('#update-banner button');
   if(btn){btn.textContent='Mise a jour...';btn.disabled=true;}
   localStorage.setItem('obs_update_pending','1');
 
@@ -555,6 +604,37 @@ async function startApp(){
   fillMagSel();
   drawToday();
   updVZ();
+  openDeepLinkMagasin();
+}
+
+// Ouverture depuis la fiche magasin du Dashboard (…/observations-terrain/?magasin=CODE) :
+// paramètre lu une fois puis retiré de l'adresse ; sans session ouverte ici, on
+// reprend celle du dashboard (même domaine, même jeton /ar-login) ; le magasin
+// est présélectionné dans le formulaire de saisie.
+var DEEP_LINK_MAGASIN=(function(){
+  try{
+    var code=(new URLSearchParams(location.search).get('magasin')||'').trim();
+    if(code) history.replaceState(null,'',location.pathname);
+    return code||null;
+  }catch(e){ return null; }
+})();
+function adoptDashboardSession(){
+  try{
+    var s=JSON.parse(localStorage.getItem('bilan_ar_session')||'null');
+    if(!s||!s.token||!s.ar||!(s.exp>Date.now())) return;
+    var dl=(localStorage.getItem('dash_lang')||'fr').toUpperCase();
+    arSession={token:s.token, ar:s.ar, langueUI:dl, exp:s.exp};
+    localStorage.setItem('obs_ar_session', JSON.stringify(arSession));
+  }catch(e){}
+}
+function openDeepLinkMagasin(){
+  if(!DEEP_LINK_MAGASIN) return;
+  var code=DEEP_LINK_MAGASIN; DEEP_LINK_MAGASIN=null;
+  var m=magasins.find(function(x){return x.code===code;});
+  var sel=document.getElementById('sel-mag');
+  var opt=m ? Array.prototype.find.call(sel.options,function(o){return o.textContent===m.libelle;}) : null;
+  if(opt){ sel.value=opt.value||opt.textContent; go(0); }
+  else alert(tr('deeplink_hors_perimetre',{code:code}));
 }
 
 
@@ -596,6 +676,7 @@ function parseMagasinsCSV(text){
   var idxLibelle=header.indexOf('libelle');
   var idxAnimateur=header.indexOf('animateur');
   var idxEmail=header.indexOf('animateur_email');
+  var idxPays=header.indexOf('pays');
   var rows=[];
   for(var i=1;i<lines.length;i++){
     var cols=lines[i].split(';');
@@ -605,7 +686,8 @@ function parseMagasinsCSV(text){
       code:code,
       libelle:idxLibelle>=0?(cols[idxLibelle]||'').trim():'',
       animateur:idxAnimateur>=0?(cols[idxAnimateur]||'').trim():'',
-      animateurEmail:idxEmail>=0?(cols[idxEmail]||'').trim():''
+      animateurEmail:idxEmail>=0?(cols[idxEmail]||'').trim():'',
+      pays:idxPays>=0?(cols[idxPays]||'').trim():''
     });
   }
   return rows;
@@ -640,11 +722,14 @@ function reloadMagasins(){
 }
 
 function fillMagSel(){
-  var list=(!currentAR || currentAR==='__ALL__') ? magasins : magasins.filter(function(m){return m.animateur===currentAR;});
+  var list=(!currentAR || currentAR==='__ALL__') ? magasins
+    : (String(currentAR).indexOf('PAYS:')===0
+      ? magasins.filter(function(m){return currentAR.slice(5).split('|').indexOf(m.pays)>=0;})
+      : magasins.filter(function(m){return m.animateur===currentAR;}));
   list=list.slice().sort(function(a,b){return a.libelle.localeCompare(b.libelle);});
   var s=document.getElementById('sel-mag');
   var c=s.value;
-  var h='<option value="">Magasin...</option>';
+  var h='<option value="">'+tr('ph_magasin')+'</option>';
   list.forEach(function(m){ h+='<option'+(m.libelle===c?' selected':'')+'>'+m.libelle+'</option>'; });
   s.innerHTML=h;
 }
@@ -933,7 +1018,13 @@ function delTH(i){themes.splice(i,1);saveAll();fillSel('sel-th',themes);drawTHL(
 
 registerServiceWorker();
 checkForUpdate();
+checkLatestVersionOnServer();
+setInterval(checkLatestVersionOnServer,VERSION_CHECK_INTERVAL_MS);
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible')checkLatestVersionOnServer();
+});
 loadSession();
+if(!arSession && DEEP_LINK_MAGASIN) adoptDashboardSession();
 var savedZimbraUser=localStorage.getItem('obs_zimbra_user')||'';
 document.getElementById('login-user').value=savedZimbraUser;
 populateLoginArSelect(savedZimbraUser);
